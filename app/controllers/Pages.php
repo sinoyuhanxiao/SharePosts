@@ -10,7 +10,7 @@ class Pages extends Controller {
             redirect("posts");
         }
         $data = [
-            'title' => 'ErikPosts',
+            'title' => 'SharePosts',
             'description' => 'Simple social network platform created by Erik Yu'
         ];
 
