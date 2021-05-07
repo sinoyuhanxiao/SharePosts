@@ -182,4 +182,93 @@ class Users extends Controller{
             return false;
         }
     }
+
+    public function profile() {
+        $this->view('users/profile');
+    }
+
+    public function editProfilePage() {
+        $data = [
+            'id' => $_SESSION['user_id'],
+            'name' => $_SESSION['user_name'],
+            'email' => $_SESSION['user_email'],
+            'name_err' => '', 
+            'email_err' => ''
+        ];
+
+        $this->view('users/editProfilePage', $data);
+    }
+
+    public function editProfile() {
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Process form
+
+            // Sanitize Post Data
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+
+            // init data
+            $data = [
+                'id' => $_SESSION['user_id'],
+                'name' => trim($_POST['name']),
+                'email' => trim($_POST['email']),
+                'name_err' => '', 
+                'email_err' => ''
+            ];
+
+            // Validate Email
+            if(empty($data['email'])) {
+                $data['email_err'] = 'Please enter email';
+            } else {
+                // Since your user email has already existed in the database because it is your email, this case should be excluded.
+                $emailExists = $this->userModel->findUserByEmail($data['email']);
+                $nameNotMatch = $this->userModel->getUserByEmail($data['email']);
+                $nameNotMatch = $nameNotMatch->id != $_SESSION['user_id'];
+                // Check if email already existed in the database and the email is not your own email (since this is for editing, email can remain the same)
+                if ($emailExists && $nameNotMatch) {
+                    $data['email_err'] = 'Email is already taken';
+                }
+            }
+
+            // Validate Name
+            if(empty($data['name'])) {
+                $data['name_err'] = 'Please enter name';
+            }
+
+            // Make sure errors are empty
+            if (empty($data['email_err']) && empty($data['name_err'])) {
+                // Validated
+                if($this->userModel->updateUsers($data)) {
+                    $this->updateUserSession($data);
+                    flash('user_message', 'User Profile Updated');
+                    redirect('users/profile');
+                } else {
+                    die("Oops, Something went wrong");
+                }
+            } else {
+                // Load view with errors
+                $this->view('users/editProfilePage', $data);
+            }
+        
+        } else {
+            // init data
+            $data = [
+                'id' => '',
+                'name' => '',
+                'email' => '',
+                'name_err' => '', 
+                'email_err' => ''
+            ];
+
+            // load view
+            die('Something went wrong');
+        }
+    }
+
+    // coordinate with update user profile
+    public function updateUserSession($data) {
+        $_SESSION['user_name'] = $data['name'];
+        $_SESSION['user_email'] = $data['email'];
+    }
+
 }

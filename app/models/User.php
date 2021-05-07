@@ -53,6 +53,16 @@
         }
     }
 
+    // Get user id by email
+    public function getUserByEmail($email) {
+        $this->db->query('SELECT * FROM users WHERE :email = email');
+        $this->db->bind(':email', $email);
+
+        $row = $this->db->single();
+
+        return $row;
+    }
+
     //Get user by id
     public function getUserById($id) {
         $this->db->query('SELECT * FROM users WHERE id = :id');
@@ -61,5 +71,23 @@
         $row = $this->db->single();
 
         return $row;
+    }
+
+    // show user profile
+
+    // Update user info when editing personal profile
+    public function updateUsers($data) {
+        $this->db->query('UPDATE users SET name = :name, email = :email WHERE id = :id');
+        // Bind Values
+        $this->db->bind(':id', $data['id']);
+        $this->db->bind(':email', $data['email']);
+        $this->db->bind(':name', $data['name']);
+
+        // Execute to check if execution went ok
+        if ($this->db->execute()) {
+            return true;
+        } else {
+            return false;
+        }
     }
  }
